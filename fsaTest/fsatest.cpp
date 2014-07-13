@@ -30,16 +30,20 @@
 #include <osg/CameraNode>
 #include <osg/Camera>
 #include <osg/BlendFunc>
+#include <osg/Point>
 #include <fstream>
+#include <osg/PointSprite>
 
 osg::ref_ptr<osg::Geometry> createGeometry();
+osg::ref_ptr<osg::Geometry> createMasspoint();
 
-class BodiCallback: public osg::NodeCallback
+class MasscenterCallback: public osg::NodeCallback
 {
 public:
-	BodiCallback(osg::Image* image)
+	MasscenterCallback(osg::Geometry* geom):
+	  _angle(0.0)
 	{
-		_image = image;
+		_geom = geom;
 	}
 	
 	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
@@ -48,13 +52,27 @@ public:
 
 		if(geode)
 		{
-			_image->dirty();
-			//traverse(node,nv);   
-		}
+			osg::Vec3Array* vertices = static_cast<osg::Vec3Array*>( _geom->getVertexArray() );
+			double time = nv->getFrameStamp()->getReferenceTime();
+
+			//(*vertices)[0].set( 1.0f+cosf(time*15.0f), -0.1f,  0.0f  );
+			if( time < 20.0)
+				_angle +=1.0/10.0;
+
+			(*vertices)[0].set( 10.0f*cos(_angle), -0.1, 10.0*sin(_angle) );
+			for( int i=10; i > 0; i--)
+			{
+				(*vertices)[i] = (*vertices)[i-1];
+			}
+
+			vertices->dirty();
+		}			
+		traverse(node,nv);   
 	}
 
 private:
-	osg::Image* _image;
+	osg::Geometry* _geom;
+	float _angle;
 };
 
 class BoditrakCallback: public osg::NodeCallback
@@ -143,28 +161,17 @@ int main()
     osg::ref_ptr<osg::Geode> geode = new osg::Geode();
     osg::StateSet* ss = geode->getOrCreateStateSet();
 
-    //geode->addDrawable( quad );    
-    //geode->setUpdateCallback( new BodiCallback(image));
     osg::ref_ptr<osg::Geometry> geom = createGeometry();
+	osg::ref_ptr<osg::Geometry> geompoint = createMasspoint();
 
     //设置纹理
-    //geom->getOrCreateStateSet()->setTextureAttributeAndModes( 0, texture.get() );
-    ss->setTextureAttributeAndModes( 0, texture.get() );
-
-    //纹理函数
-    osg::ref_ptr<osg::TexEnv> texe = new osg::TexEnv;
-    texe->setMode(osg::TexEnv::BLEND);
-    //geom->getOrCreateStateSet()->setTextureAttributeAndModes( 0, texe );
-      
-    //设置混合
-    osg::ref_ptr<osg::BlendFunc> blendFunc = new osg::BlendFunc;
-    blendFunc->setFunction( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    //geom->getOrCreateStateSet()->setAttributeAndModes(blendFunc);
-    //ss->setAttributeAndModes(blendFunc);
-    //quad->getOrCreateStateSet()->setAttributeAndModes(blendFunc);
+    geom->getOrCreateStateSet()->setTextureAttributeAndModes( 0, texture.get() );
+    //ss->setTextureAttributeAndModes( 0, texture.get() );
 
     geode->addDrawable( geom.get() );
-    geode->setUpdateCallback( new BoditrakCallback(geom , a ,value));
+	geode->addDrawable( geompoint.get() );
+    //geode->setUpdateCallback( new BoditrakCallback(geom , a ,value));
+    geode->setUpdateCallback( new MasscenterCallback( geompoint ));
 
 	osgViewer::Viewer viewer;
 	viewer.setSceneData( geode );
@@ -172,62 +179,46 @@ int main()
     viewer.addEventHandler(new osgViewer::StatsHandler);
     viewer.addEventHandler( new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()) ); 
     viewer.setUpViewInWindow( 100, 100, 640, 480 );
-    
-
-
-#if 0
-    int count = 0;
-    for(int r=0;r<row;r++)
-    {
-        for(int c=0;c<col;c++,value++)
-        {
-            //float step = 15*c/455.0+15*24*r/710.0;
-            //value += (int)step;           
-            //*p = *(value+(int)step);
-            //*(p+1) = *(value+(int)step);
-            //*(p+2) = *(value+(int)step);
-            //p += 2;
-            printf("%d ",int(*value));
-        }
-        puts("");
-    }
-#endif
-
-    //image->allocateImage(a->getWidth(),a.getHeight(),1,GL_RGB,GL_UNSIGNED_BYTE);
-    //unsigned char* data = (unsigned char*)image->getDataPointer();
-    //image->setImage(a.getWidth(),a.getHeight(),1,GL_RGB,
-    //    GL_RGB,GL_UNSIGNED_BYTE,/*(unsigned char*)*/data,osg::Image::AllocationMode::NO_DELETE );
- 
 
     while(!viewer.done())
     {
         value = a->getValues();
-#if 0        
-        
-        printf("--[%o]\n",value);
-        osg::Vec4Array* colors = static_cast<osg::Vec4Array*>( geom->getColorArray() );
-        // printf("[%O]-[%O]\n",pv,_value);
-        unsigned char* p = image->data();
-        for(int r=0;r<row;r++)
-        {
-            for(int c=0;c<col;c++,value++)
-            {
-                *p = 255 - int(*value);
-                *(p+1) = 255 - int(*value);
-                *(p+2) = 255 - int(*value);
-                p += int(455/15)*3;
-                //printf("[%d]%d ",count++,(int)step);
-            }
-            //p += int(710/24)*455*3 ;
-            p = image->data();
-            p += (710/24)*455*3*(r+1);
-            //puts("");
-        }
-#endif
+
         viewer.frame();
     }
 
     return 0;
+}
+
+osg::ref_ptr<osg::Geometry> createMasspoint()
+{
+    //Construct the vertices
+	const int numPoints = 10;
+    osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array(numPoints);
+	for(int i=0 ; i<numPoints ; i++)
+	{
+		(*vertices)[i].set( 0.0,-0.1,0.0 );
+	}
+
+    // Construct the borderlines geometry
+    osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array(1);
+	(*colors)[0].set(1.0,1.0,1.0,1.0);
+
+    // Construct the polygon geometry
+    osg::ref_ptr<osg::Geometry> pointgeo = new osg::Geometry;
+    pointgeo->setVertexArray( vertices.get() );
+    pointgeo->setColorArray( colors.get() );
+	pointgeo->setColorBinding( osg::Geometry::BIND_OVERALL );
+	pointgeo->addPrimitiveSet( new osg::DrawArrays(osg::DrawArrays::POINTS, 0, 1) );
+	pointgeo->addPrimitiveSet( new osg::DrawArrays(osg::DrawArrays::LINE_STRIP,0, numPoints) );
+
+	// Set point size
+	osg::ref_ptr<osg::StateSet> ss = pointgeo->getOrCreateStateSet();
+	ss->setAttribute( new osg::Point(10.0),osg::StateAttribute::ON );
+
+	pointgeo->setUseDisplayList(false);
+	pointgeo->setUseVertexBufferObjects(true);
+    return pointgeo;
 }
 
 osg::ref_ptr<osg::Geometry> createGeometry()
@@ -238,7 +229,6 @@ osg::ref_ptr<osg::Geometry> createGeometry()
     //
     osg::ref_ptr<osg::Vec2Array> texcoords = new osg::Vec2Array(25*16);
 
-#if 1 
     for(int i=0; i<25; i++ )
     {
         for(int j=0; j<16; j++ )
@@ -247,25 +237,6 @@ osg::ref_ptr<osg::Geometry> createGeometry()
             (*texcoords)[i*16 + j].set( (float)i/(float)25,(float)j/(float)16 );
         }
     }
-#endif    
-
-#if 0
-    (*vertices)[0].set( 0.0f, 0.0f, 0.0f );
-    (*vertices)[1].set( 3.0f, 0.0f, 0.0f );
-    (*vertices)[2].set( 3.0f, 0.0f, 3.0f );
-    (*vertices)[3].set( 0.0f, 0.0f, 3.0f );
-    (*vertices)[4].set( 1.0f, 0.0f, 1.0f );
-    (*vertices)[5].set( 2.0f, 0.0f, 1.0f );
-    (*vertices)[6].set( 2.0f, 0.0f, 2.0f );
-    (*vertices)[7].set( 1.0f, 0.0f, 2.0f );
-    vertices->push_back(osg::Vec3(-0.2,-0.5,3.5));
-    vertices->push_back(osg::Vec3(6.2,-0.5,3.5));
-    vertices->push_back(osg::Vec3(0.8,2.0,6.0));
-    vertices->push_back(osg::Vec3(5.2,2.0,6.0));
-    vertices->push_back(osg::Vec3(-0.2,4.5,3.5));
-    vertices->push_back(osg::Vec3(6.2,4.5,3.5));
-#endif
-
        
     osg::ref_ptr<osg::DrawElementsUInt> mesh = new osg::DrawElementsUInt(osg::DrawElementsUInt::QUADS);
 
@@ -288,7 +259,7 @@ osg::ref_ptr<osg::Geometry> createGeometry()
     osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array();
     for(int i = 0; i<25 ; i++)
         for(int j = 0; j<16;j++)
-            colors->push_back(osg::Vec4(.0,.0,.0,0.0));
+            colors->push_back(osg::Vec4(1.0,1.0,1.0,0.0));
 
     // Construct the polygon geometry
     osg::ref_ptr<osg::Geometry> polygon = new osg::Geometry;
@@ -296,12 +267,12 @@ osg::ref_ptr<osg::Geometry> createGeometry()
     polygon->setNormalArray( normals.get() );
     polygon->setColorArray( colors.get() );
     polygon->setTexCoordArray( 0, texcoords.get() );
- //   polygon->setTexCoordIndices(0, );
     polygon->setNormalBinding( osg::Geometry::BIND_OVERALL );
     polygon->setColorBinding( osg::Geometry::BIND_PER_VERTEX );
    // polygon->addPrimitiveSet( new osg::DrawArrays(osg::DrawArrays::QUADS, 0, 4) );
     polygon->addPrimitiveSet( mesh.get() );
 
+	polygon->setUseDisplayList(false);
     polygon->setUseVertexBufferObjects(true);
 
     return polygon;
