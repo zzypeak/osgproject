@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-#include "CFsa.h" 
-
 #include <osg/TextureRectangle>
 #include <osg/Texture2D>
 #include <osg/MatrixTransform>
@@ -34,147 +32,18 @@
 #include <fstream>
 #include <osg/PointSprite>
 
-osg::ref_ptr<osg::Geometry> createGeometry();
-osg::ref_ptr<osg::Geometry> createMasspoint();
-
-class MasscenterCallback: public osg::NodeCallback
-{
-public:
-	MasscenterCallback(osg::Geometry* geom):
-	  _angle(0.0)
-	{
-		_geom = geom;
-	}
-	
-	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-	{ 
-		osg::Geode* geode = dynamic_cast<osg::Geode*>(node);
-
-		if(geode)
-		{
-			osg::Vec3Array* vertices = static_cast<osg::Vec3Array*>( _geom->getVertexArray() );
-			double time = nv->getFrameStamp()->getReferenceTime();
-
-			//(*vertices)[0].set( 1.0f+cosf(time*15.0f), -0.1f,  0.0f  );
-			if( time < 20.0)
-				_angle +=1.0/10.0;
-
-			(*vertices)[0].set( 10.0f*cos(_angle), -0.1, 10.0*sin(_angle) );
-			for( int i=10; i > 0; i--)
-			{
-				(*vertices)[i] = (*vertices)[i-1];
-			}
-
-			vertices->dirty();
-		}			
-		traverse(node,nv);   
-	}
-
-private:
-	osg::Geometry* _geom;
-	float _angle;
-};
-
-class BoditrakCallback: public osg::NodeCallback
-{
-public:
-    BoditrakCallback(osg::Geometry* geom,CFsa* a , float* value)
-	{
-		_geom = geom;
-        _a = a;
-        _value = value;
-	}
-	
-	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-	{ 
-		osg::Geode* geode = dynamic_cast<osg::Geode*>(node);
-
-		if(geode)
-		{
-            osg::Vec4Array* colors = static_cast<osg::Vec4Array*>( _geom->getColorArray() );
-            float* pv = _value;//_a->getValues();
-            if(pv)
-            {
-                colors->clear();
-                for(int i = 0; i<_a->getRows(); i++)
-                {
-                    for(int j = 0; j< _a->getColumns(); j++,pv++)
-                    {
-                        if( int(*pv) < 10 )
-                            colors->push_back(osg::Vec4(1.0,1.0,1.0,0.0));
-                        else if( int(*pv) < 30)
-                            colors->push_back(osg::Vec4(0.0,0.0,0.8,1.0));//blue
-                        else if( int(*pv) < 40)
-                            colors->push_back(osg::Vec4(0.0,0.5,0.0,1.0));//green
-                        else if( int(*pv) < 50)
-                            colors->push_back(osg::Vec4(0.0,1.0,0.0,1.0));//green
-                        else if( int(*pv) < 90)
-                            colors->push_back(osg::Vec4(0.5,0.5,0.0,1.0));//yellow
-                        else if( int(*pv) < 100)
-                            colors->push_back(osg::Vec4(0.5,0.0,0.0,1.0));//red
-                        else 
-                            colors->push_back(osg::Vec4(1.0,0.0,0.0,1.0));//red
-                    }
-                }
-                colors->dirty();
-              }
-		}
-	}
-
-private:
-	osg::Geometry* _geom;
-    CFsa* _a;
-    float* _value;
-};
-
-
+#include "Boditrak.h"
 
 int main() 
 {
-	osg::ref_ptr<osg::Group> root = new osg::Group;
-		
-    osg::ref_ptr<osg::Image> image = new osg::Image();
-    
-    osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
-    texture->setImage( osgDB::readImageFile("boditrak.png") );
-    texture->setResizeNonPowerOfTwoHint(false);
+	Boditrak bk;
+	bk.Initialize();
+	bk.setStart();
 
-    osg::Drawable* quad = osg::createTexturedQuadGeometry(
-        osg::Vec3(), osg::Vec3(15.0f, 0.0f, 0.0f), osg::Vec3(0.0f, 0.0f, 24.0f) );
-    quad->getOrCreateStateSet()->setTextureAttributeAndModes( 0, texture.get() );
-    quad->getOrCreateStateSet()->setRenderingHint(osg::StateSet::OPAQUE_BIN );//不透明
-
-    CFsa* a = new CFsa();
-    float* value = a->getValues();
-    int col = a->getColumns();
-    int row = a->getRows();
-    int heit = a->getHeight();
-    int width = a->getWidth();
-    //unsigned char* data = new unsigned char[heit*width*3];
-    //unsigned char* p = data;
-    //memset(data,255,heit*width*3);
-    if(!value)
-    {
-        std::cout<<"can not connect to boditrak.\n"<<std::endl;    
-    }
-
-    osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-    osg::StateSet* ss = geode->getOrCreateStateSet();
-
-    osg::ref_ptr<osg::Geometry> geom = createGeometry();
-	osg::ref_ptr<osg::Geometry> geompoint = createMasspoint();
-
-    //设置纹理
-    geom->getOrCreateStateSet()->setTextureAttributeAndModes( 0, texture.get() );
-    //ss->setTextureAttributeAndModes( 0, texture.get() );
-
-    geode->addDrawable( geom.get() );
-	geode->addDrawable( geompoint.get() );
-    //geode->setUpdateCallback( new BoditrakCallback(geom , a ,value));
-    geode->setUpdateCallback( new MasscenterCallback( geompoint ));
+	osg::ref_ptr<osg::Node> root = bk.getBoditrakNode();
 
 	osgViewer::Viewer viewer;
-	viewer.setSceneData( geode );
+	viewer.setSceneData( root );
     viewer.setCameraManipulator( new osgGA::TrackballManipulator );
     viewer.addEventHandler(new osgViewer::StatsHandler);
     viewer.addEventHandler( new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()) ); 
@@ -182,7 +51,6 @@ int main()
 
     while(!viewer.done())
     {
-        value = a->getValues();
 
         viewer.frame();
     }
@@ -215,6 +83,9 @@ osg::ref_ptr<osg::Geometry> createMasspoint()
 	// Set point size
 	osg::ref_ptr<osg::StateSet> ss = pointgeo->getOrCreateStateSet();
 	ss->setAttribute( new osg::Point(10.0),osg::StateAttribute::ON );
+	
+	// Set point smooth
+	ss->setMode( GL_POINT_SMOOTH ,osg::StateAttribute::ON);
 
 	pointgeo->setUseDisplayList(false);
 	pointgeo->setUseVertexBufferObjects(true);

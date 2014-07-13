@@ -37,15 +37,6 @@ CFsa::~CFsa()
 	fsat7Uninitialize();
 }
 
-CFsa* CFsa::getInstance()
-{
-	if(_fsaInstance == NULL)
-	{
-		_fsaInstance = new CFsa();
-	}
-	return _fsaInstance;
-}
-
 int CFsa::Ondo()
 {
 	if(!_t7)

@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFsa.cpp" />
+    <ClCompile Include="Boditrak.cpp" />
     <ClCompile Include="fsatest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CFsa.h" />
+    <ClInclude Include="Boditrak.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{31FE8A91-58E7-4039-87D2-FD145E06B021}</ProjectGuid>

@@ -15,15 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFsa.cpp">
+    <ClCompile Include="fsatest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="fsatest.cpp">
+    <ClCompile Include="Boditrak.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CFsa.h">
+    <ClInclude Include="Boditrak.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
