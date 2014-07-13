@@ -1,0 +1,33 @@
+﻿Build started 2014/7/12 22:54:28.
+     1>Project "D:\VSPROJECT\fsaTest\fsaTest\fsaTest.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Release\fsaTest.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ID:\boditrak\include /I"D:\OpenSoftware\OpenSceneGraph-3.0.1\include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CFsa.cpp fsatest.cpp
+         CFsa.cpp
+         _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+     1>d:\vsproject\fsatest\fsatest\CFsa.h(37): warning C4244: 'return' : conversion from 'const float' to 'int', possible loss of data
+     1>CFsa.cpp(68): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(105) : see declaration of 'strcpy'
+     1>CFsa.cpp(81): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+     1>CFsa.cpp(82): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+         fsatest.cpp
+         _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+     1>d:\vsproject\fsatest\fsatest\CFsa.h(37): warning C4244: 'return' : conversion from 'const float' to 'int', possible loss of data
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\VSPROJECT\fsaTest\Release\fsaTest.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:D:\boditrak\lib /LIBPATH:"D:\OpenSoftware\OpenSceneGraph-3.0.1\lib" fsa.lib osgText.lib OpenThreads.lib osgUtil.lib osgParticle.lib osg.lib osgViewer.lib osgAnimation.lib osgPresentation.lib osgVolume.lib osgDB.lib osgWidget.lib osgShadow.lib osgFX.lib osgFXd.lib osgSim.lib osgGA.lib osgTerrain.lib osgManipulator.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\fsaTest.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\VSPROJECT\fsaTest\Release\fsaTest.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\VSPROJECT\fsaTest\Release\fsaTest.lib" /MACHINE:X86 Release\CFsa.obj
+         Release\fsatest.obj
+     1>LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+         Generating code
+         Finished generating code
+         fsaTest.vcxproj -> D:\VSPROJECT\fsaTest\Release\fsaTest.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"D:\VSPROJECT\fsaTest\Release\fsaTest.exe;#1" /manifest Release\fsaTest.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file "Release\fsaTest.unsuccessfulbuild".
+         Touching "Release\fsaTest.lastbuildstate".
+     1>Done Building Project "D:\VSPROJECT\fsaTest\fsaTest\fsaTest.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:28.79
